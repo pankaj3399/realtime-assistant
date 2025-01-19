@@ -141,3 +141,54 @@ export async function processWithAssistantText(textToAnalyse, fileName, clerkId,
 }
 
 
+export async function generateReport(pdfData, prevConvo) {
+  try{
+    const assistantsClient = new AssistantsClient(
+      process.env.AZURE_OPENAI_ENDPOINT,
+      new AzureKeyCredential(process.env.AZURE_OPENAI_KEY)
+    );    
+    const assistant = await assistantsClient.getAssistant(process.env.AZURE_OPENAI_ASSISTANT_ID);
+    const thread = await assistantsClient.createThread();
+    for (const chunk of pdfData) {
+      await assistantsClient.createMessage(
+        thread.id,
+        "user",
+        "Here's a part of the file text: " + chunk
+      );
+    }
+    for (const chunk of prevConvo) {
+      await assistantsClient.createMessage(
+        thread.id,
+        "user",
+        "This is part of previous conversation: " + chunk
+      );
+    }
+    await assistantsClient.createMessage(
+      thread.id,
+      "user",
+      "Please analyze this text given to you and provide key insights."
+    );
+
+    // Create and monitor run
+    let run = await assistantsClient.createRun(thread.id, {
+      assistantId: assistant.id
+    });
+
+    // Poll for completion
+    while (run.status === "queued" || run.status === "in_progress") {
+      let timeout = 10000
+      await new Promise(resolve => setTimeout(resolve, timeout));
+      if(timeout > 2000) timeout -= 2000
+      run = await assistantsClient.getRun(thread.id, run.id);
+    }
+
+    // Get messages
+    const messages = await assistantsClient.listMessages(thread.id);
+
+    return {messages: messages.data};
+  }catch(error){
+    console.error("Error occurred:", error);
+    return {error}; 
+  }
+}
+
