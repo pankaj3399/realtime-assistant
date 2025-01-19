@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Buffer } from 'buffer';
-import AudioRecorder from './RecorderComponent';
 import { Button } from '../ui/button';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -270,18 +269,7 @@ const AudioChat = () => {
             {uploading ? <Loader2 className='w-4 h-4 text-white animate-spin' /> : "Upload PDF"}
           </Button>
           
-          {wsRef.current && (
-            <AudioRecorder
-              resume={async () => {
-                if (
-                  audioContextRef.current &&
-                  audioContextRef.current.state === 'suspended'
-                )
-                  await audioContextRef.current.resume();
-              }}
-              ws={wsRef.current}
-            />
-          )}
+          
           <Button
             onClick={saveAndAnalyse}
             className="bg-blue-500 hover:bg-blue-600"
