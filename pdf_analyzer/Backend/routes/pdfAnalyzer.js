@@ -1,12 +1,14 @@
 import express from 'express';
 import { upload } from '../middleware/multer.js';
-import { analyze, testAssistant, testPdf, editAnalysis } from '../controller/pdfController.js';
+import {  testAssistant, testPdf, editAnalysis, uploadFile, saveConversation, analyzeWitSavedData } from '../controller/pdfController.js';
 
 const router = express.Router();
 
 
 // API Endpoint to analyze PDF
-router.post('/analyze', upload.single('pdf'), analyze);
+router.post('/analyze', analyzeWitSavedData);
+router.post('/upload', upload.single('pdf'), uploadFile);
+router.post('/saveconversation', saveConversation);
 router.put('/analyze/:id', editAnalysis);
 
 router.get('/test-connection',testAssistant);
