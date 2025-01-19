@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Buffer } from 'buffer';
+import { Mic, MicOff } from 'lucide-react';
 window.Buffer = Buffer;
 
-const AudioRecorder = ({ ws, resume }: { ws: WebSocket, resume : () => Promise<void> }) => {
+const AudioRecorder = ({ ws, resume, addUserTranscript }: { ws: WebSocket, resume : () => Promise<void>, addUserTranscript: ()=>void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isConnected, setIsConnected] = useState(ws.readyState === WebSocket.OPEN);
   const [status, setStatus] = useState(ws.readyState === WebSocket.OPEN ? 'Connected' : 'Disconnected');
@@ -18,8 +19,7 @@ const AudioRecorder = ({ ws, resume }: { ws: WebSocket, resume : () => Promise<v
     setStatus(ws.readyState === WebSocket.OPEN ? 'Connected' : 'Disconnected');
     console.log(status);
     
-  }, [ws])
-
+  }, [ws, ws.readyState])
   let buffer: Uint8Array = new Uint8Array();
 
   function processAudioRecordingBuffer(data: Float32Array) {
@@ -78,6 +78,8 @@ const AudioRecorder = ({ ws, resume }: { ws: WebSocket, resume : () => Promise<v
 
     try {
       await resume();
+      addUserTranscript()
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const audioContext = new AudioContext({ sampleRate: 24000 });
       const source = audioContext.createMediaStreamSource(stream);
@@ -95,6 +97,8 @@ const AudioRecorder = ({ ws, resume }: { ws: WebSocket, resume : () => Promise<v
       audioContextRef.current = audioContext;
       mediaStreamRef.current = stream;
       scriptProcessorRef.current = scriptProcessor;
+
+      
 
       setIsRecording(true);
     } catch (error) {
@@ -121,19 +125,23 @@ const AudioRecorder = ({ ws, resume }: { ws: WebSocket, resume : () => Promise<v
       <div className="flex items-center gap-4">
 
 
-        <Button
-          onClick={startRecording}
-          disabled={isRecording || !isConnected}
-        >
-          Start Recording
-        </Button>
-
-        <Button
+        {
+          isRecording ? <Button
           onClick={stopRecording}
           disabled={!isRecording}
+          className='bg-orange-600 hover:bg-orange-700'
         >
-          Stop Recording
+          <MicOff /> Turn Off
+        </Button>:<Button
+          onClick={startRecording}
+          disabled={isRecording || !isConnected}
+          className='bg-orange-500 hover:bg-orange-600'
+          >
+          <Mic /> Turn On
         </Button>
+        }
+
+        
       </div>
     </div>
   );
