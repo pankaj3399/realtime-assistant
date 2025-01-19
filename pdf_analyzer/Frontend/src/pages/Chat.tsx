@@ -52,7 +52,7 @@ const Chat = () => {
         <NavBar  back/>
         {loading && <div className='w-full h-full grid place-items-center'><Loader2Icon className='w-8 h-8 text-orange-400 animate-spin' /></div>}
               {error && <div className='w-full text-center text-red-500'><p>{error}</p></div>}
-        {response && id && <ChatBox chat={chat} editNameAndResponse={editNameAndResponse} id={id} date={date} name={name} pdfText={pdfText} response={response} />}
+        {response && id && <ChatBox transcripts={[]} analyzed regenrateReport={async ()=> {}} chat={chat} editNameAndResponse={editNameAndResponse} id={id} date={date} name={name} pdfText={pdfText} response={response} />}
     </div>
   )
 }
