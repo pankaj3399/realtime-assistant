@@ -3,6 +3,8 @@ import { LowLevelRTClient } from "rt-client";
 import dotenv from "dotenv";
 dotenv.config();
 
+let prev_item_id = ""
+
 const getClient=  async () => {
   const apiKey = process.env.AZURE_OPENAI_KEY;
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
@@ -55,7 +57,62 @@ const processPdf = async (client, ws, pdfText = null) => {
   }
 };
 
+const processPdfWithDB = async (client, ws, pdfText = null, prevConv = null) => {
+  try {
+    const text =
+      pdfText || "Tell user that no pdfText reached to you in polite manner";
+    const prev = 
+      prevConv || "";
+    const pdf_id = new Date().getTime();
+    const con_id = new Date().getTime() + 1;
+    await client.send({
+      type: "conversation.item.create",
+      item: {
+        role: "user",
+        content: [
+          {
+            text: `This is the pdf text you need to analyze: ${text}`,
+            type: "input_text",
+          },
+        ],
+        type: "message",
+        id: pdf_id.toString()
+      },
+    });
+
+    await client.send({
+      type: "conversation.item.create",
+      item: {
+        role: "user",
+        content: [
+          {
+            text: `This is the previous conversation between you and user: ${prev}`,
+            type: "input_text",
+          },
+        ],
+        type: "message",
+        id: con_id.toString(),
+      },
+    });
+    await client.send({
+      type: "response.create",
+      response: {
+        modalities: ["audio", "text"],
+        instructions: `Tell user that you have received the pdf text and previous conversation, and ask user how you can help , then respond according to users instructions.`,
+      },
+    });
+
+    await handleRealTimeMessages(client, null, ws);
+  } catch (error) {
+    console.error("Error occurred:", error);
+    throw error;
+  } finally {
+    client.close();
+  }
+};
+
 const handleRealTimeMessages = async (client, messageCallback, ws) => {
+  
   for await (const message of client.messages()) {
     if (messageCallback) {
       await messageCallback(message);
@@ -73,7 +130,7 @@ const handleRealTimeMessages = async (client, messageCallback, ws) => {
         break;
       }
       case "error": {
-        console.error(message.error);
+        console.error("###ERROR###\n",message)
         break;
       }
       case "response.audio_transcript.delta": {
@@ -108,7 +165,7 @@ const handleRealTimeMessages = async (client, messageCallback, ws) => {
         break;
       }
       case "conversation.item.input_audio_transcription.completed": {
-        console.log("Transcription completed");
+        console.log("Transcription completed", message);
         ws.send(
           JSON.stringify({
             type: "user_transcript",
@@ -134,13 +191,14 @@ const handleRealTimeMessages = async (client, messageCallback, ws) => {
         );
         break;
       }
-    }
-
-    if (message.type === "response.done" || message.type === "error") {
-      break;
+      default:{
+        console.log("No message type matched: ")
+        console.log(message);
+        
+      }
     }
   }
 };
 
 
-export { getClient, processPdf, handleRealTimeMessages };
+export { getClient, processPdf, handleRealTimeMessages, processPdfWithDB };
