@@ -55,9 +55,10 @@ const Conversation = ({analysis}:{
       if (wsRef.current) {
         wsRef.current.close();
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state === 'running') {
         audioContextRef.current.close();
       }
+      
     };
   }, []);
 
@@ -150,7 +151,7 @@ const Conversation = ({analysis}:{
           break;
         case 'done':{
           console.log('Done processing');
-          
+          setTrans(prev => [...prev, {role: 'user', text: ''},{role: 'assistant', text: ''}])
           break;
         }
         case 'id':{
@@ -181,7 +182,6 @@ const Conversation = ({analysis}:{
           navigate("/home")
           break;
         }
-        
         default:{
           console.log('Unknown message type:', message.type);
           setLoading(false)
@@ -301,7 +301,7 @@ const Conversation = ({analysis}:{
 
           {<Button
             onClick={stopAudio}
-            className="bg-blue-500 hover:bg-blue-600"
+            className="bg-blue-500 hover:bg-blue-600 hidden"
             disabled={!isPlaying}
           >
             {<Square className='text-white bg-white rounded-sm w-5 h-5' />}
@@ -321,3 +321,4 @@ const Conversation = ({analysis}:{
 };
 
 export default Conversation;
+ 

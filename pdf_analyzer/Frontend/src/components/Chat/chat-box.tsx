@@ -148,20 +148,21 @@ const ChatBox = ({
 
           {transcripts && transcripts.length > 0 && showChat && (
             <div className="space-y-3 col-span-5 md:max-h-[85vh] overflow-y-auto py-2 px-2 custom-scrollbar">
-              {transcripts.map((msg, index) => (
+              {transcripts.map((msg, index) => msg.text ? (
+                
                 <div key={index} className={cn(`border border-blue-500 p-3 rounded-md text-justify font-inter ${msg.role === 'user' ? 'bg-blue-200' : 'bg-orange-200'}`)}>
                 <h5 className={cn(`text-${msg.role === 'user' ? 'blue' : 'orange'}-500 font-bold flex justify-between`)}>
                   {msg.role.toUpperCase()}
                 </h5>
                 <pre className="text-wrap font-inter">{msg.text}</pre>
               </div>
-              ))}
+              ):null)}
             </div>
           )}
           {name && date && (
             <div className="flex flex-col w-full items-center">
               <div className="my-2">
-                <p className="font-bold text-xl">{name}</p>
+                <p className="font-bold text-xl text-wrap">{name.length > 20 ? `${name.substring(0,20)}...`:name}</p>
                 <p className="text-sm text-gray-500">
                   {new Date(Number(date)).toDateString()}
                 </p>

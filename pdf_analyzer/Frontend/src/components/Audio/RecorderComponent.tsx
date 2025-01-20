@@ -54,7 +54,7 @@ const AudioRecorder = ({ ws, resume, addUserTranscript }: { ws: WebSocket, resum
         })
       );
     } else {
-      console.error('WebSocket is not connected');
+     stopRecording();
     }
   }
 
@@ -107,7 +107,7 @@ const AudioRecorder = ({ ws, resume, addUserTranscript }: { ws: WebSocket, resum
   };
 
   const stopRecording = () => {
-    if (audioContextRef.current) {
+    if (audioContextRef.current && audioContextRef.current.state === 'running') {
       audioContextRef.current.close();
     }
     if (mediaStreamRef.current) {
