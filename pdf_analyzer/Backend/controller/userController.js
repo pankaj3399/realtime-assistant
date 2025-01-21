@@ -4,7 +4,10 @@ import User from "../model/userModel.js";
 export const signup = async (req, res)=>{
     try{
         const data = req.body
-        const existUser = await User.findOne({clerkId: data.clerkId})
+        let existUser = await User.findOne({clerkId: data.clerkId})
+        if(!existUser){
+            existUser = await User.findOne({email:data.email})
+        }
         if(existUser){
             existUser.$set(data)
             await existUser.save()
@@ -100,4 +103,3 @@ export const getAnalysis = async (req, res) => {
         })
     }
 }
-
